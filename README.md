@@ -1,61 +1,155 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Laravel Jetstream Inertia Vue 3
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Simple example of a Laravel 8 app using Jetstream and Inertia with Vue 3.
 
-## About Laravel
+## Steps
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1.  Create a new Laravel Jetstream application
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+    ```bash
+    $ laravel new laravel-jetstream-inertia-vue3
+    ```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1.  Install Laravel Mix 6 (beta)
 
-## Learning Laravel
+    ```bash
+    $ npm install laravel-mix@next
+    ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    See https://github.com/JeffreyWay/laravel-mix/blob/master/UPGRADE.md
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1.  Update scripts and devDependencies objects in `package.json` file:
 
-## Laravel Sponsors
+    ```json
+    {
+        "private": true,
+        "scripts": {
+            "dev": "npx mix",
+            "development": "npx mix",
+            "watch": "npx mix watch",
+            "hot": "npx mix hot",
+            "prod": "npx mix --production",
+            "production": "npx mix --production"
+        },
+        "devDependencies": {
+            "@inertiajs/inertia": "^0.4.0",
+            "@inertiajs/inertia-vue3": "^0.1.0",
+            "@vue/compiler-sfc": "^3.0.0",
+            "axios": "^0.20.0",
+            "laravel-mix": "^6.0.0-beta.5",
+            "vue": "^3.0.0",
+            "vue-loader": "^16.0.0-beta.8",
+            "@tailwindcss/ui": "^0.6.0",
+            "cross-env": "^7.0",
+            "laravel-jetstream": "^0.0.3",
+            "lodash": "^4.17.19",
+            "portal-vue": "^2.1.7",
+            "postcss-import": "^12.0.1",
+            "resolve-url-loader": "^3.1.0",
+            "tailwindcss": "^1.8.0"
+        }
+    }
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+1.  Install the new dependencies:
 
-### Premium Partners
+    ```bash
+    $ npm i
+    ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+1.  Update `webpack.mix.json` file:
 
-## Contributing
+    ```js
+    const mix = require("laravel-mix");
+    const path = require("path");
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    mix.postCss("resources/css/app.css", "public/css", [
+        require("postcss-import"),
+        require("tailwindcss")
+    ])
+        .js("resources/js/app.js", "public/js")
+        .vue({ version: 3 });
 
-## Code of Conduct
+    mix.alias({
+        "@": path.resolve("resources/js")
+    });
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1.  Update `/resources/js/app.js` file to use inertia and vue 3:
 
-## Security Vulnerabilities
+    ```js
+    import { createApp, h } from "vue";
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+    import { app, plugin } from "@inertiajs/inertia-vue3";
 
-## License
+    const el = document.getElementById("app");
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    createApp({
+        render: () =>
+            h(app, {
+                initialPage: JSON.parse(el.dataset.page),
+                resolveComponent: name =>
+                    import(`@/Pages/${name}`).then(module => module.default)
+            })
+    })
+        .use(plugin)
+        .mount(el);
+    ```
+
+    See https://github.com/inertiajs/inertia/releases/tag/inertia-vue3%40v0.1.0
+
+1.  Launch npm mix to let it installs additional dependencies:
+    ```bash
+    $ npm run dev
+    ```
+1.  Re-launch npm mix:
+    ```bash
+    $ npm run dev
+    ```
+    You should obtain an error:
+    ```bash
+    VueCompilerError: <template v-for> key should be placed on the <template> tag.
+    ```
+1.  Update `/resources/js/Layouts/AppLayout.vue` file on line 179 to move `:key="team.id"` from `<form>` element to its parent `<template>` element:
+
+    ```js
+    <template v-for="team in $page.user.all_teams" :key="team.id">
+    <form @submit.prevent="switchToTeam(team)">
+    ```
+
+1.  Done 🥳
+
+    ```bash
+    DONE  Compiled successfully in 8719ms                                                      4:48:19 PM
+
+    99% done plugins BuildOutputPlugin
+
+    Laravel Mix v6.0.0-beta.10
+
+    ✔ Compiled Successfully in 8719ms
+    ┌───────────────────────────────────┬──────────┐
+    │ File                              │ Size     │
+    ├───────────────────────────────────┼──────────┤
+    │ css/app.css                       │ 4.38 MiB │
+    ├───────────────────────────────────┼──────────┤
+    │ /js/app.js                        │ 1.14 MiB │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_Sh… │ 367 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_API_Index_… │ 289 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_API_ApiTok… │ 178 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_Tw… │ 135 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Dashboard_… │ 128 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_Lo… │ 115 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_De… │ 109 KiB  │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_Up… │ 99 KiB   │
+    ├───────────────────────────────────┼──────────┤
+    │ js/resources_js_Pages_Profile_Up… │ 82.5 KiB │
+    └───────────────────────────────────┴──────────┘
+    ```
